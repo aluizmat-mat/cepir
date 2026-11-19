@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEPIR — Campeonato Educacional de Projetos Inovadores de Robótica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0B0F19;
+      --card-dark: #131A2B;
+      --purple: #7C3AED;
+      --neon-green: #00E676;
+      --pink: #EC4899;
+      --cyan: #06B6D4;
+      --yellow: #FACC15;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: #F8FAFC;
+      background-image:
+        radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.20), transparent 32%),
+        radial-gradient(circle at 88% 12%, rgba(236, 72, 153, 0.16), transparent 32%),
+        radial-gradient(circle at 50% 95%, rgba(6, 182, 212, 0.14), transparent 38%);
+      min-height: 100vh;
+    }
+    .font-display {
+      font-family: 'Chakra Petch', sans-serif;
+    }
+    .cyber-card {
+      background: rgba(19, 26, 43, 0.92);
+      border: 1px solid rgba(124, 58, 237, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+    }
+    .cyber-glow {
+      box-shadow: 0 0 24px rgba(124, 58, 237, 0.35), 0 0 8px rgba(0, 230, 118, 0.25);
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      opacity: 1;
+    }
+
+    /* ESTILOS DE IMPRESSÃO A4 (PDF OFICIAL) */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm;
+      }
+      body {
+        background: #FFFFFF !important;
+        background-image: none !important;
+        color: #0F172A !important;
+        font-size: 11pt;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .cyber-card {
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+        border: 1.5px solid #CBD5E1 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+        margin-bottom: 14px !important;
+      }
+      .print-dark-text {
+        color: #0F172A !important;
+      }
+      .print-muted-text {
+        color: #475569 !important;
+      }
+      table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+      }
+      th, td {
+        border: 1px solid #94A3B8 !important;
+        color: #0F172A !important;
+        background: #FFFFFF !important;
+        padding: 5px 8px !important;
+      }
+      th {
+        background: #F1F5F9 !important;
+        font-weight: 700 !important;
+      }
+      input, select {
+        border: none !important;
+        background: transparent !important;
+        color: #0F172A !important;
+        font-weight: 700 !important;
+        padding: 0 !important;
+      }
+      .tab-section {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased pb-24">
+
+<script>
+  // ==========================================================================
+  // CONFIGURAÇÃO DO CAMPEONATO CEPIR (PREENCHA A API_URL APÓS CRIAR A PLANILHA)
+  // ==========================================================================
+  const CONFIG_CEPIR = {
+    // Cole entre as aspas abaixo a URL do App da Web gerada no Google Apps Script:
+    API_URL: "https://script.google.com/macros/s/AKfycbwqDzKPQt62YIW1gkfI9VGVH_bubNkESvmLZd7THf8aruYwss9jJdZL1_cY69AMc77qTQ/exec",
+    EVENTO_NOME: "CEPIR — MEU CEPI É 10!",
+    EVENTO_DESC: "Campeonato Educacional de Projetos Inovadores de Robótica",
+    SYNC_INTERVAL_MS: 8000 // Atualiza automaticamente a cada 8 segundos para o público
+  };
+</script>
+
+  <!-- BARRA SUPERIOR DE STATUS (OCULTA NA IMPRESSÃO) -->
+  <div class="no-print sticky top-0 z-40 backdrop-blur-md bg-[#0B0F19]/90 border-b border-purple-500/30">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2.5">
+        <span id="connBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/30">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          Modo Local (Navegador)
+        </span>
+        <span id="lastSyncText" class="text-slate-400 hidden sm:inline">Aguardando primeira sincronização...</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="modeBadge" class="px-2.5 py-1 rounded-full font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-400/30">
+          👁️ MODO PÚBLICO (AO VIVO)
+        </span>
+        <button onclick="manualRefresh()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium border border-slate-600 transition flex items-center gap-1">
+          🔄 Atualizar Agora
+        </button>
+        <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold transition flex items-center gap-1 shadow">
+          🖨️ Imprimir PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CABEÇALHO PRINCIPAL CEPIR -->
+  <header class="max-w-7xl mx-auto px-4 pt-6 pb-4">
+    <div class="cyber-card rounded-2xl p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6 border-2 border-purple-500/40 cyber-glow">
+      <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+        <!-- CONTAINER DA LOGO (PERSONALIZÁVEL COM PNG OU EMBLEMA VETORIAL CEPIR) -->
+        <div id="logoContainer" class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-[#0B0F19] border-2 border-[#00E676] flex items-center justify-center overflow-hidden shrink-0 shadow-lg p-1.5">
+          <!-- Emblema SVG padrão estilizado CEPIR -->
+          <svg id="defaultLogoSvg" viewBox="0 0 220 220" class="w-full h-full">
+            <defs>
+              <linearGradient id="cepirGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#EC4899"/>
+                <stop offset="50%" stop-color="#7C3AED"/>
+                <stop offset="100%" stop-color="#06B6D4"/>
+              </linearGradient>
+            </defs>
+            <circle cx="110" cy="110" r="102" fill="#131A2B" stroke="#00E676" stroke-width="5"/>
+            <rect x="28" y="16" width="164" height="30" rx="8" fill="#FACC15" stroke="#EC4899" stroke-width="3"/>
+            <text x="110" y="36" text-anchor="middle" fill="#0B0F19" font-family="Chakra Petch, sans-serif" font-weight="800" font-size="16">MEU CEPI É 10!</text>
+            <!-- Robô central -->
+            <rect x="75" y="54" width="70" height="42" rx="10" fill="#E2E8F0" stroke="#06B6D4" stroke-width="3"/>
+            <circle cx="95" cy="74" r="7" fill="#0B0F19"/><circle cx="95" cy="74" r="4" fill="#00E676"/>
+            <circle cx="125" cy="74" r="7" fill="#0B0F19"/><circle cx="125" cy="74" r="4" fill="#00E676"/>
+            <line x1="110" y1="54" x2="110" y2="46" stroke="#EC4899" stroke-width="4"/>
+            <!-- Letreiro CEPIR -->
+            <rect x="16" y="96" width="188" height="58" rx="14" fill="url(#cepirGrad)" stroke="#00E676" stroke-width="4"/>
+            <text x="110" y="138" text-anchor="middle" fill="#FFFFFF" font-family="Chakra Petch, sans-serif" font-weight="900" font-size="44" letter-spacing="2">CEPIR</text>
+            <!-- Subtítulo -->
+            <text x="110" y="174" text-anchor="middle" fill="#FACC15" font-family="Inter, sans-serif" font-weight="800" font-size="11">PROJETOS INOVADORES</text>
+            <text x="110" y="190" text-anchor="middle" fill="#00E676" font-family="Inter, sans-serif" font-weight="800" font-size="12">DE ROBÓTICA</text>
+          </svg>
+          <img id="customLogoImg" src="" alt="Logo CEPIR" class="hidden w-full h-full object-contain" />
+        </div>
+
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/40 text-yellow-300 text-xs font-extrabold tracking-wider uppercase mb-2">
+            ⚡ MEU CEPI É 10! • PLACAR E SÚMULAS OFICIAIS
+          </div>
+          <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white print-dark-text">
+            CEPIR <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] via-[#06B6D4] to-[#EC4899]">ROBÓTICA</span>
+          </h1>
+          <p class="text-slate-300 print-muted-text text-sm sm:text-base mt-1 font-medium">
+            Campeonato Educacional de Projetos Inovadores de Robótica
+          </p>
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3 text-xs">
+            <span class="px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-200 border border-purple-500/30 font-semibold">3 Categorias</span>
+            <span class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 font-semibold">11 Chaves Oficiais</span>
+            <span class="px-2.5 py-1 rounded-md bg-pink-500/20 text-pink-200 border border-pink-500/30 font-semibold">27 Troféus • 162 Medalhas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUMO RÁPIDO DE HOMOLOGAÇÃO -->
+      <div class="w-full md:w-auto bg-[#0B0F19]/80 border border-slate-700/80 rounded-xl p-4 text-center md:text-right shrink-0">
+        <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Conferência das Súmulas</div>
+        <div id="auditCounter" class="font-display text-3xl font-bold text-[#00E676] mt-0.5">0 / 11</div>
+        <div class="text-xs text-slate-400 mt-0.5">Chaves homologadas</div>
+        <div class="w-full md:w-44 h-2 bg-slate-800 rounded-full overflow-hidden mt-2">
+          <div id="auditProgressBar" class="h-full bg-gradient-to-r from-[#00E676] to-[#06B6D4] transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAINEL EXCLUSIVO DO MODO ARBITRAGEM (SÓ APARECE SE ?arbitro ESTIVER NA URL) -->
+  <section id="refereePanel" class="hidden no-print max-w-7xl mx-auto px-4 mb-5">
+    <div class="rounded-2xl bg-gradient-to-r from-purple-950/90 via-[#131A2B] to-pink-950/80 border-2 border-[#00E676]/60 p-4 sm:p-5 shadow-xl">
+      <!-- TELA DE LOGIN DO ÁRBITRO -->
+      <div id="refereeLoginBox" class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="font-display text-lg font-bold text-[#00E676] flex items-center gap-2">
+            🔐 ACESSO RESTRITO — MESA DE ARBITRAGEM CEPIR
+          </h2>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Digite a senha oficial da organização para liberar o lançamento de placares, tempos e homologação.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <input id="refereePassInput" type="password" placeholder="Senha da arbitragem..."
+            class="px-3.5 py-2 rounded-lg bg-[#0B0F19] border border-purple-400/50 text-white text-sm focus:outline-none focus:border-[#00E676] flex-1 md:w-52" />
+          <button onclick="unlockReferee()" class="px-4 py-2 rounded-lg bg-[#00E676] hover:bg-emerald-400 text-[#0B0F19] font-extrabold text-sm transition cursor-pointer">
+            Desbloquear Mesa
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTROLES DO ÁRBITRO AUTENTICADO -->
+      <div id="refereeControlsBox" class="hidden space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/80 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-md bg-[#00E676] text-[#0B0F19] font-extrabold text-xs">✅ ARBITRAGEM ATIVA</span>
+            <input id="refereeNameInput" type="text" placeholder="Nome do Árbitro / Mesário..."
+              class="px-3 py-1.5 rounded-lg bg-[#0B0F19] border border-slate-600 text-white text-xs w-52" />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-cyan-300 border border-cyan-500/40 cursor-pointer">
+              🖼️ Carregar Logo PNG
+              <input type="file" accept="image/*" onchange="handleLogoUpload(event)" class="hidden" />
+            </label>
+            <button onclick="toggleApiConfig()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 border border-amber-500/40">
+              ⚙️ Link Google Planilhas
+            </button>
+            <button onclick="resetAllData()" class="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-xs font-semibold text-rose-200 border border-rose-500/40">
+              🗑️ Zerar Placar
+            </button>
+            <button onclick="saveAndPublish()" id="btnSaveTop" class="px-4 py-2 rounded-lg bg-[#00E676] hover:bg-emerald-400 text-[#0B0F19] font-extrabold text-xs sm:text-sm shadow-lg transition flex items-center gap-1.5 cursor-pointer">
+              💾 SALVAR E PUBLICAR AO VIVO
+            </button>
+          </div>
+        </div>
+
+        <!-- CONFIGURAÇÃO RÁPIDA DA URL DO GOOGLE SHEETS -->
+        <div id="apiConfigBox" class="hidden bg-[#0B0F19]/90 p-3.5 rounded-xl border border-amber-400/40 text-xs space-y-2">
+          <div class="font-bold text-amber-300">Conexão em Tempo Real com Google Planilhas (Apps Script):</div>
+          <p class="text-slate-300">
+            Cole abaixo a URL do App da Web do Google Apps Script para sincronizar este navegador imediatamente (para que todos os alunos abram já conectados, cole essa mesma URL dentro do arquivo <code class="text-cyan-300">index.html</code> na linha <code class="text-cyan-300">API_URL</code>).
+          </p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="apiUrlInput" type="url" placeholder="https://script.google.com/macros/s/...../exec"
+              class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white" />
+            <button onclick="applyApiUrl()" class="px-4 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold">
+              Conectar Agora
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOTIFICAÇÃO FLUTUANTE -->
+  <div id="toastBanner" class="hidden no-print fixed bottom-5 right-5 z-50 max-w-md px-4 py-3 rounded-xl shadow-2xl border font-semibold text-sm transition-all"></div>
+
+  <!-- NAVEGAÇÃO POR ABAS (OCULTA NA IMPRESSÃO) -->
+  <nav class="no-print max-w-7xl mx-auto px-4 mb-6">
+    <div class="flex flex-wrap gap-2 bg-[#131A2B]/90 p-2 rounded-xl border border-slate-700/70">
+      <button onclick="switchTab('geral')" data-tab="geral" class="tab-btn px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition bg-purple-600 text-white shadow">
+        🏆 Conferência & Pódio Geral
+      </button>
+      <button onclick="switchTab('em')" data-tab="em" class="tab-btn px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition text-slate-300 hover:bg-slate-800">
+        🎓 Ensino Médio (3 Chaves)
+      </button>
+      <button onclick="switchTab('89')" data-tab="89" class="tab-btn px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition text-slate-300 hover:bg-slate-800">
+        🤖 8º e 9º Ano (5 Chaves)
+      </button>
+      <button onclick="switchTab('67')" data-tab="67" class="tab-btn px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition text-slate-300 hover:bg-slate-800">
+        ⚡ 6º e 7º Ano (3 Chaves)
+      </button>
+    </div>
+  </nav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 space-y-8">
+
+    <!-- ABA 1: CONFERÊNCIA GERAL E PÓDIO -->
+    <section id="tab-geral" class="tab-section space-y-6">
+      <div class="cyber-card rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/80 pb-3 mb-4">
+          <div>
+            <h2 class="font-display text-xl sm:text-2xl font-bold text-white print-dark-text">
+              QUADRO GERAL DE PÓDIOS E CONFERÊNCIA OFICIAL
+            </h2>
+            <p class="text-xs text-slate-400 print-muted-text">
+              Atualizado automaticamente conforme as súmulas de cada arena são lançadas e conferidas.
+            </p>
+          </div>
+          <div class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-yellow-400/10 text-yellow-300 border border-yellow-400/30">
+            Premiação Total: 27 Troféus • 162 Medalhas (6/equipe)
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-900/90 text-slate-300 border-b border-slate-700">
+                <th class="py-3 px-3">Categoria</th>
+                <th class="py-3 px-3">Modalidade / Arena</th>
+                <th class="py-3 px-3 text-yellow-300">🥇 1º Lugar</th>
+                <th class="py-3 px-3 text-slate-200">🥈 2º Lugar</th>
+                <th class="py-3 px-3 text-amber-500">🥉 3º Lugar</th>
+                <th class="py-3 px-3 text-center">Status / Conferência</th>
+              </tr>
+            </thead>
+            <tbody id="geralSummaryBody" class="divide-y divide-slate-800">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ASSINATURAS PARA IMPRESSÃO PDF -->
+      <div class="hidden print-only cyber-card rounded-xl p-5 mt-6">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-6">
+          Homologação Oficial dos Resultados — CEPIR (Meu CEPI é 10!)
+        </div>
+        <div class="grid grid-cols-2 gap-8 pt-6 text-center text-xs">
+          <div>
+            <div class="border-t border-slate-800 pt-1.5 font-bold">Coordenação Geral do Evento</div>
+          </div>
+          <div>
+            <div class="border-t border-slate-800 pt-1.5 font-bold">Chefia de Arbitragem / Conferência</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 2: ENSINO MÉDIO -->
+    <section id="tab-em" class="tab-section hidden space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-lg bg-purple-600 text-white font-display font-bold text-sm">CATEGORIA</span>
+        <h2 class="font-display text-2xl font-bold text-white print-dark-text">ENSINO MÉDIO</h2>
+      </div>
+      <div id="brackets-em" class="space-y-6"></div>
+    </section>
+
+    <!-- ABA 3: 8º E 9º ANO -->
+    <section id="tab-89" class="tab-section hidden space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-lg bg-pink-600 text-white font-display font-bold text-sm">CATEGORIA</span>
+        <h2 class="font-display text-2xl font-bold text-white print-dark-text">8º E 9º ANO</h2>
+      </div>
+      <div id="brackets-89" class="space-y-6"></div>
+    </section>
+
+    <!-- ABA 4: 6º E 7º ANO -->
+    <section id="tab-67" class="tab-section hidden space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-lg bg-emerald-600 text-slate-950 font-display font-bold text-sm">CATEGORIA</span>
+        <h2 class="font-display text-2xl font-bold text-white print-dark-text">6º E 7º ANO</h2>
+      </div>
+      <div id="brackets-67" class="space-y-6"></div>
+    </section>
+
+  </main>
+
+  <!-- BOTÃO FLUTUANTE DE SALVAR QUANDO HOUVER ALTERAÇÕES PENDENTES -->
+  <div id="unsavedBar" class="hidden no-print fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-[#0B0F19] border-2 border-[#00E676] px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+    <span class="text-xs sm:text-sm font-bold text-amber-300">⚠️ Você tem alterações não publicadas!</span>
+    <button onclick="saveAndPublish()" class="px-4 py-2 rounded-xl bg-[#00E676] hover:bg-emerald-400 text-[#0B0F19] font-extrabold text-xs sm:text-sm cursor-pointer">
+      💾 Salvar e Publicar Agora
+    </button>
+  </div>
+
+<script>
+// ============================================================================
+// DADOS OFICIAIS DO CAMPEONATO CEPIR (TODAS AS 11 CHAVES ATUALIZADAS)
+// ============================================================================
+function createInitialState() {
+  return {
+    logoDataUrl: "",
+    brackets: [
+      // ---------------- ENSINO MÉDIO ----------------
+      {
+        id: "em-sumo",
+        cat: "em",
+        catLabel: "Ensino Médio",
+        title: "Sumô Autônomo",
+        arena: "Espaço 1 — Arena Sumô",
+        schedule: "08h40 – 09h40",
+        type: "round_robin",
+        podiumSlots: 3,
+        rules: "Todos contra todos • Até 3 min preparo + Round 3 min + 1 min técnico • V=3 pts, E=1 pt, D=0 pts",
+        teams: ["AERIALBOTS", "PEDXII", "SUPER MARIO", "THE SPIDERS"],
+        matches: [
+          { id: "m1", label: "Luta 1", teamA: "AERIALBOTS", teamB: "PEDXII", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m2", label: "Luta 2", teamA: "SUPER MARIO", teamB: "THE SPIDERS", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m3", label: "Luta 3", teamA: "PEDXII", teamB: "THE SPIDERS", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m4", label: "Luta 4", teamA: "AERIALBOTS", teamB: "SUPER MARIO", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m5", label: "Luta 5", teamA: "AERIALBOTS", teamB: "THE SPIDERS", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m6", label: "Luta 6", teamA: "PEDXII", teamB: "SUPER MARIO", scoreA: "", scoreB: "", tech: false, done: false }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "em-linha",
+        cat: "em",
+        catLabel: "Ensino Médio",
+        title: "Segue Linha",
+        arena: "Espaço 2 — Pista Segue Linha",
+        schedule: "10h00 – 10h55",
+        type: "line_follower",
+        podiumSlots: 3,
+        rules: "3 tentativas de até 5 min • 2 Checkpoints (CP1 e CP2) • Critério: Maior nº de CPs, desempate pelo menor tempo",
+        runs: [
+          { team: "AUTOBOTS", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" },
+          { team: "PEDXII", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" },
+          { team: "SUPER MARIO 2", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "em-cabo",
+        cat: "em",
+        catLabel: "Ensino Médio",
+        title: "Cabo de Guerra",
+        arena: "Espaço 3 — Arena Cabo de Guerra",
+        schedule: "11h25 – 12h00",
+        type: "round_robin",
+        podiumSlots: 3,
+        rules: "Todos contra todos • Tempo técnico de 1 min 30 seg • V=3 pts, E=1 pt, D=0 pts",
+        teams: ["AUTOBOTS", "SUPER MARIO", "THE SPIDERS"],
+        matches: [
+          { id: "m1", label: "Disputa 1", teamA: "AUTOBOTS", teamB: "SUPER MARIO", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m2", label: "Disputa 2", teamA: "SUPER MARIO", teamB: "THE SPIDERS", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m3", label: "Disputa 3", teamA: "AUTOBOTS", teamB: "THE SPIDERS", scoreA: "", scoreB: "", tech: false, done: false }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+
+      // ---------------- 8º E 9º ANO ----------------
+      {
+        id: "89-sumo-trad",
+        cat: "89",
+        catLabel: "8º e 9º Ano",
+        title: "Sumô Tradicional",
+        arena: "Espaço 1 — Arena Sumô",
+        schedule: "11h25 – 11h55",
+        type: "round_robin",
+        podiumSlots: 3,
+        rules: "Todos contra todos (3 equipes) • 3 min preparo + Round 3 min + 1 min técnico • V=3 pts, E=1 pt, D=0 pts",
+        teams: ["FOXYTECH 1", "FOXYTECH", "STARK TECH"],
+        matches: [
+          { id: "m1", label: "Luta 1", teamA: "FOXYTECH 1", teamB: "FOXYTECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m2", label: "Luta 2", teamA: "FOXYTECH", teamB: "STARK TECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m3", label: "Luta 3", teamA: "FOXYTECH 1", teamB: "STARK TECH", scoreA: "", scoreB: "", tech: false, done: false }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "89-sumo-ctrl",
+        cat: "89",
+        catLabel: "8º e 9º Ano",
+        title: "Sumô Controle",
+        arena: "Espaço 1 — Arena Sumô",
+        schedule: "11h55 – 12h30",
+        type: "round_robin",
+        podiumSlots: 3,
+        rules: "Todos contra todos • Rounds de 2 min + 1 min técnico • V=3 pts, E=1 pt, D=0 pts",
+        teams: ["DERRAMAKES", "PARQUEXII C++", "PROJETO ALFA"],
+        matches: [
+          { id: "m1", label: "Luta 1", teamA: "DERRAMAKES", teamB: "PARQUEXII C++", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m2", label: "Luta 2", teamA: "PARQUEXII C++", teamB: "PROJETO ALFA", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m3", label: "Luta 3", teamA: "DERRAMAKES", teamB: "PROJETO ALFA", scoreA: "", scoreB: "", tech: false, done: false }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "89-linha-solo",
+        cat: "89",
+        catLabel: "8º e 9º Ano",
+        title: "Segue Linha (Solo Contra o Tempo)",
+        arena: "Espaço 2 — Pista Segue Linha",
+        schedule: "08h40 – 09h00",
+        type: "line_follower",
+        podiumSlots: 1,
+        rules: "Modalidade Solo contra o tempo • 3 tentativas de até 5 min • 2 Checkpoints",
+        runs: [
+          { team: "FOXYTECH", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "89-linha-comp",
+        cat: "89",
+        catLabel: "8º e 9º Ano",
+        title: "Segue Linha (Competitiva)",
+        arena: "Espaço 2 — Pista Segue Linha",
+        schedule: "09h00 – 09h40",
+        type: "line_follower",
+        podiumSlots: 2,
+        rules: "3 tentativas de até 5 min • 2 Checkpoints • Maior nº de CPs, desempate pelo menor tempo",
+        runs: [
+          { team: "PARQUEXIIC++", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" },
+          { team: "SPACETECH", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "89-cabo",
+        cat: "89",
+        catLabel: "8º e 9º Ano",
+        title: "Cabo de Guerra",
+        arena: "Espaço 3 — Arena Cabo de Guerra",
+        schedule: "10h00 – 11h10",
+        type: "round_robin",
+        podiumSlots: 3,
+        rules: "Todos contra todos (5 equipes • 10 disputas sem jogos seguidos) • Técnico 1m30s • V=3 pts, E=1 pt, D=0 pts",
+        teams: ["DERRAMAKES", "FOXYTECH 1", "SPACETECH", "STARK TECH", "PROJETO ALFA"],
+        matches: [
+          { id: "m1", label: "Disputa 1", teamA: "DERRAMAKES", teamB: "FOXYTECH 1", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m2", label: "Disputa 2", teamA: "SPACETECH", teamB: "STARK TECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m3", label: "Disputa 3", teamA: "FOXYTECH 1", teamB: "PROJETO ALFA", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m4", label: "Disputa 4", teamA: "DERRAMAKES", teamB: "SPACETECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m5", label: "Disputa 5", teamA: "STARK TECH", teamB: "PROJETO ALFA", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m6", label: "Disputa 6", teamA: "FOXYTECH 1", teamB: "SPACETECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m7", label: "Disputa 7", teamA: "DERRAMAKES", teamB: "STARK TECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m8", label: "Disputa 8", teamA: "SPACETECH", teamB: "PROJETO ALFA", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m9", label: "Disputa 9", teamA: "FOXYTECH 1", teamB: "STARK TECH", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m10", label: "Disputa 10", teamA: "DERRAMAKES", teamB: "PROJETO ALFA", scoreA: "", scoreB: "", tech: false, done: false }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+
+      // ---------------- 6º E 7º ANO ----------------
+      {
+        id: "67-sumo",
+        cat: "67",
+        catLabel: "6º e 7º Ano",
+        title: "Sumô Autônomo",
+        arena: "Espaço 1 — Arena Sumô",
+        schedule: "10h00 – 10h30",
+        type: "round_robin",
+        podiumSlots: 2,
+        rules: "Confronto Direto (Melhor de 3 Rounds) • 3 min preparo + Round 3 min + 1 min técnico",
+        teams: ["FOXYTECH", "HYPOTENCION"],
+        matches: [
+          { id: "m1", label: "Round 1", teamA: "FOXYTECH", teamB: "HYPOTENCION", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m2", label: "Round 2", teamA: "FOXYTECH", teamB: "HYPOTENCION", scoreA: "", scoreB: "", tech: false, done: false },
+          { id: "m3", label: "Round 3", teamA: "FOXYTECH", teamB: "HYPOTENCION", scoreA: "", scoreB: "", tech: false, done: false }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "67-linha",
+        cat: "67",
+        catLabel: "6º e 7º Ano",
+        title: "Segue Linha (Contra o Tempo)",
+        arena: "Espaço 2 — Pista Segue Linha",
+        schedule: "11h25 – 12h20",
+        type: "line_follower",
+        podiumSlots: 3,
+        rules: "3 tentativas de até 5 min • 2 Checkpoints • Maior nº de CPs, desempate pelo menor tempo",
+        runs: [
+          { team: "FOXYTECH", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" },
+          { team: "HYPOTENSION", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" },
+          { team: "MEGABOTS", t1_cp: "", t1_time: "", t2_cp: "", t2_time: "", t3_cp: "", t3_time: "" }
+        ],
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      },
+      {
+        id: "67-cabo",
+        cat: "67",
+        catLabel: "6º e 7º Ano",
+        title: "Cabo de Guerra (Hors-Concours)",
+        arena: "Espaço 3 — Arena Cabo de Guerra",
+        schedule: "08h40 – 08h55",
+        type: "exhibition",
+        podiumSlots: 1,
+        rules: "Apresentação oficial de tração e desafio livre na arena",
+        team: "MEGABOTS",
+        completed: false,
+        performanceNote: "",
+        verified: false,
+        verifiedBy: "",
+        notes: ""
+      }
+    ]
+  };
+}
+
+// ============================================================================
+// ESTADO GLOBAL E CONTROLE DE ACESSO
+// ============================================================================
+const STORAGE_KEY = "cepir_2026_state_v2";
+const API_OVERRIDE_KEY = "cepir_2026_api_url";
+
+let appState = createInitialState();
+let isRefereeUrl = false;
+let isAuthenticated = false;
+let refereePassword = "";
+let hasUnsavedChanges = false;
+let currentTab = "geral";
+
+function getActiveApiUrl() {
+  const localOverride = localStorage.getItem(API_OVERRIDE_KEY);
+  if (localOverride && localOverride.trim() !== "") return localOverride.trim();
+  return (CONFIG_CEPIR.API_URL || "").trim();
+}
+
+// ============================================================================
+// CÁLCULOS DE CLASSIFICAÇÃO E PÓDIO
+// ============================================================================
+function parseTimeToSeconds(timeStr) {
+  if (!timeStr || typeof timeStr !== "string") return 999999;
+  const clean = timeStr.trim();
+  if (!clean) return 999999;
+  if (clean.includes(":")) {
+    const parts = clean.split(":");
+    const mins = parseInt(parts[0], 10) || 0;
+    const secs = parseFloat(parts[1].replace(",", ".")) || 0;
+    return mins * 60 + secs;
+  }
+  const val = parseFloat(clean.replace(",", "."));
+  return isNaN(val) ? 999999 : val;
+}
+
+function getBestLineRun(run) {
+  const attempts = [
+    { cp: run.t1_cp, time: run.t1_time },
+    { cp: run.t2_cp, time: run.t2_time },
+    { cp: run.t3_cp, time: run.t3_time }
+  ];
+  let best = null;
+  attempts.forEach((att, idx) => {
+    const hasCp = att.cp !== "" && att.cp !== null && !isNaN(Number(att.cp));
+    const sec = parseTimeToSeconds(att.time);
+    const hasTime = sec < 999999;
+    if (hasCp || hasTime) {
+      const cpVal = hasCp ? Number(att.cp) : 0;
+      if (
+        !best ||
+        cpVal > best.cp ||
+        (cpVal === best.cp && sec < best.seconds)
+      ) {
+        best = {
+          cp: cpVal,
+          seconds: sec,
+          timeDisplay: hasTime ? att.time.trim() : "--:--",
+          attemptNum: idx + 1
+        };
+      }
+    }
+  });
+  return best;
+}
+
+function computeStandings(bracket) {
+  if (bracket.type === "round_robin") {
+    const stats = {};
+    bracket.teams.forEach(t => {
+      stats[t] = { team: t, pts: 0, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, diff: 0 };
+    });
+    bracket.matches.forEach(m => {
+      const hasA = m.scoreA !== "" && m.scoreA !== null && !isNaN(Number(m.scoreA));
+      const hasB = m.scoreB !== "" && m.scoreB !== null && !isNaN(Number(m.scoreB));
+      if (hasA && hasB && stats[m.teamA] && stats[m.teamB]) {
+        const sA = Number(m.scoreA);
+        const sB = Number(m.scoreB);
+        stats[m.teamA].played += 1;
+        stats[m.teamB].played += 1;
+        stats[m.teamA].gf += sA;
+        stats[m.teamA].ga += sB;
+        stats[m.teamB].gf += sB;
+        stats[m.teamB].ga += sA;
+        if (sA > sB) {
+          stats[m.teamA].pts += 3;
+          stats[m.teamA].wins += 1;
+          stats[m.teamB].losses += 1;
+        } else if (sB > sA) {
+          stats[m.teamB].pts += 3;
+          stats[m.teamB].wins += 1;
+          stats[m.teamA].losses += 1;
+        } else {
+          stats[m.teamA].pts += 1;
+          stats[m.teamB].pts += 1;
+          stats[m.teamA].draws += 1;
+          stats[m.teamB].draws += 1;
+        }
+      }
+    });
+    const list = Object.values(stats).map(s => ({ ...s, diff: s.gf - s.ga }));
+    list.sort((a, b) => b.pts - a.pts || b.wins - a.wins || b.diff - a.diff || b.gf - a.gf);
+    return list;
+  }
+
+  if (bracket.type === "line_follower") {
+    const list = bracket.runs.map(r => {
+      const best = getBestLineRun(r);
+      return {
+        team: r.team,
+        bestCp: best ? best.cp : -1,
+        bestSeconds: best ? best.seconds : 999999,
+        bestTimeDisplay: best ? best.timeDisplay : "--:--",
+        hasMark: Boolean(best)
+      };
+    });
+    list.sort((a, b) => {
+      if (a.hasMark !== b.hasMark) return a.hasMark ? -1 : 1;
+      if (b.bestCp !== a.bestCp) return b.bestCp - a.bestCp;
+      return a.bestSeconds - b.bestSeconds;
+    });
+    return list;
+  }
+
+  if (bracket.type === "exhibition") {
+    return [{
+      team: bracket.team,
+      completed: bracket.completed,
+      note: bracket.performanceNote
+    }];
+  }
+  return [];
+}
+
+function getPodiumLabels(bracket) {
+  const standings = computeStandings(bracket);
+  if (bracket.type === "round_robin") {
+    const anyPlayed = standings.some(s => s.played > 0);
+    if (!anyPlayed) return { p1: "A definir", p2: bracket.podiumSlots >= 2 ? "A definir" : "—", p3: bracket.podiumSlots >= 3 ? "A definir" : "—" };
+    return {
+      p1: standings[0] ? `${standings[0].team} (${standings[0].pts} pts)` : "—",
+      p2: bracket.podiumSlots >= 2 && standings[1] ? `${standings[1].team} (${standings[1].pts} pts)` : "—",
+      p3: bracket.podiumSlots >= 3 && standings[2] ? `${standings[2].team} (${standings[2].pts} pts)` : "—"
+    };
+  }
+  if (bracket.type === "line_follower") {
+    const formatMark = (item) => item && item.hasMark ? `${item.team} (${item.bestCp} CP • ${item.bestTimeDisplay})` : "A definir";
+    return {
+      p1: formatMark(standings[0]),
+      p2: bracket.podiumSlots >= 2 ? formatMark(standings[1]) : "—",
+      p3: bracket.podiumSlots >= 3 ? formatMark(standings[2]) : "—"
+    };
+  }
+  if (bracket.type === "exhibition") {
+    return {
+      p1: bracket.completed ? `${bracket.team} (Concluído ✓)` : `${bracket.team} (Aguardando)`,
+      p2: "—",
+      p3: "—"
+    };
+  }
+  return { p1: "—", p2: "—", p3: "—" };
+}
+
+// ============================================================================
+// RENDERIZAÇÃO DA INTERFACE
+// ============================================================================
+function renderLogo() {
+  const svg = document.getElementById("defaultLogoSvg");
+  const img = document.getElementById("customLogoImg");
+  if (appState.logoDataUrl) {
+    img.src = appState.logoDataUrl;
+    img.classList.remove("hidden");
+    svg.classList.add("hidden");
+  } else {
+    img.classList.add("hidden");
+    svg.classList.remove("hidden");
+  }
+}
+
+function renderAll() {
+  renderLogo();
+  renderGeralSummary();
+  renderCategoryBrackets("em", "brackets-em");
+  renderCategoryBrackets("89", "brackets-89");
+  renderCategoryBrackets("67", "brackets-67");
+  updateAuditCounter();
+}
+
+function updateAuditCounter() {
+  const total = appState.brackets.length;
+  const done = appState.brackets.filter(b => b.verified).length;
+  document.getElementById("auditCounter").textContent = `${done} / ${total}`;
+  document.getElementById("auditProgressBar").style.width = `${Math.round((done / total) * 100)}%`;
+}
+
+function renderGeralSummary() {
+  const tbody = document.getElementById("geralSummaryBody");
+  tbody.innerHTML = appState.brackets.map(b => {
+    const podium = getPodiumLabels(b);
+    const statusHtml = b.verified
+      ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">✅ Homologada</span>`
+      : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/30">⏳ Em Disputa</span>`;
+
+    return `
+      <tr class="hover:bg-slate-800/40 transition">
+        <td class="py-3 px-3 font-bold text-purple-300">${b.catLabel}</td>
+        <td class="py-3 px-3">
+          <div class="font-bold text-white print-dark-text">${b.title}</div>
+          <div class="text-[11px] text-slate-400">${b.arena} • ${b.schedule}</div>
+        </td>
+        <td class="py-3 px-3 font-bold text-yellow-300">${podium.p1}</td>
+        <td class="py-3 px-3 font-semibold text-slate-200">${podium.p2}</td>
+        <td class="py-3 px-3 font-semibold text-amber-400">${podium.p3}</td>
+        <td class="py-3 px-3 text-center">${statusHtml}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function renderCategoryBrackets(catKey, containerId) {
+  const container = document.getElementById(containerId);
+  const list = appState.brackets.filter(b => b.cat === catKey);
+  const canEdit = isRefereeUrl && isAuthenticated;
+
+  container.innerHTML = list.map(b => {
+    const badgeStatus = b.verified
+      ? `<span class="px-3 py-1 rounded-full text-xs font-extrabold bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/50">✅ SÚMULA CONFERIDA E HOMOLOGADA</span>`
+      : `<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-400/40">⏳ AGUARDANDO CONFERÊNCIA</span>`;
+
+    let bodyHtml = "";
+
+    // TIPO 1: TODOS CONTRA TODOS (SUMÔ / CABO DE GUERRA)
+    if (b.type === "round_robin") {
+      const standings = computeStandings(b);
+      const matchesHtml = b.matches.map((m, idx) => {
+        const sA = m.scoreA !== "" && m.scoreA !== null ? Number(m.scoreA) : null;
+        const sB = m.scoreB !== "" && m.scoreB !== null ? Number(m.scoreB) : null;
+        const winA = sA !== null && sB !== null && sA > sB;
+        const winB = sA !== null && sB !== null && sB > sA;
+
+        return `
+          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30">
+            <td class="py-2.5 px-3 font-bold text-cyan-300 whitespace-nowrap">${m.label}</td>
+            <td class="py-2.5 px-3 text-right font-bold ${winA ? 'text-[#00E676]' : 'text-white'}">${m.teamA}</td>
+            <td class="py-2.5 px-3 text-center whitespace-nowrap">
+              ${canEdit ? `
+                <div class="inline-flex items-center gap-1.5">
+                  <input type="number" min="0" value="${m.scoreA}" onchange="updateMatchScore('${b.id}', ${idx}, 'scoreA', this.value)"
+                    class="w-14 text-center py-1 rounded bg-[#0B0F19] border border-purple-400/50 text-white font-extrabold" />
+                  <span class="text-slate-400 font-bold">x</span>
+                  <input type="number" min="0" value="${m.scoreB}" onchange="updateMatchScore('${b.id}', ${idx}, 'scoreB', this.value)"
+                    class="w-14 text-center py-1 rounded bg-[#0B0F19] border border-purple-400/50 text-white font-extrabold" />
+                </div>
+              ` : `
+                <span class="inline-block px-3 py-1 rounded-lg bg-[#0B0F19] border border-slate-700 font-display font-bold text-base text-white">
+                  ${m.scoreA !== "" ? m.scoreA : "-"} <span class="text-slate-500 mx-1">x</span> ${m.scoreB !== "" ? m.scoreB : "-"}
+                </span>
+              `}
+            </td>
+            <td class="py-2.5 px-3 text-left font-bold ${winB ? 'text-[#00E676]' : 'text-white'}">${m.teamB}</td>
+            <td class="py-2.5 px-3 text-center no-print">
+              ${canEdit ? `
+                <label class="inline-flex items-center gap-1 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" ${m.tech ? "checked" : ""} onchange="updateMatchTech('${b.id}', ${idx}, this.checked)" class="accent-[#00E676]" />
+                  Téc.
+                </label>
+              ` : (m.tech ? '<span class="text-xs text-amber-300 font-semibold">Téc. usado</span>' : '<span class="text-xs text-slate-600">—</span>')}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      const standingsHtml = standings.map((s, i) => {
+        const medal = i === 0 && s.played > 0 ? "🥇" : i === 1 && s.played > 0 && b.podiumSlots >= 2 ? "🥈" : i === 2 && s.played > 0 && b.podiumSlots >= 3 ? "🥉" : `${i + 1}º`;
+        return `
+          <tr class="border-b border-slate-800/80 ${i === 0 && s.played > 0 ? 'bg-yellow-400/5' : ''}">
+            <td class="py-2 px-3 font-extrabold text-center">${medal}</td>
+            <td class="py-2 px-3 font-bold text-white">${s.team}</td>
+            <td class="py-2 px-3 text-center font-extrabold text-[#00E676]">${s.pts}</td>
+            <td class="py-2 px-3 text-center text-slate-300">${s.played}</td>
+            <td class="py-2 px-3 text-center text-slate-300">${s.wins}</td>
+            <td class="py-2 px-3 text-center text-slate-300">${s.diff > 0 ? '+' + s.diff : s.diff}</td>
+          </tr>
+        `;
+      }).join("");
+
+      bodyHtml = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-7 overflow-x-auto">
+            <div class="text-xs font-bold uppercase tracking-wider text-purple-300 mb-2">Tabela de Confrontos</div>
+            <table class="w-full text-xs sm:text-sm border border-slate-800 rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-[#0B0F19] text-slate-400 border-b border-slate-800">
+                  <th class="py-2 px-3 text-left">Ordem</th>
+                  <th class="py-2 px-3 text-right">Equipe A</th>
+                  <th class="py-2 px-3 text-center">Placar</th>
+                  <th class="py-2 px-3 text-left">Equipe B</th>
+                  <th class="py-2 px-3 text-center no-print">Obs.</th>
+                </tr>
+              </thead>
+              <tbody>${matchesHtml}</tbody>
+            </table>
+          </div>
+
+          <div class="lg:col-span-5 overflow-x-auto">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#00E676] mb-2">Classificação Automática</div>
+            <table class="w-full text-xs sm:text-sm border border-slate-800 rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-[#0B0F19] text-slate-400 border-b border-slate-800">
+                  <th class="py-2 px-3 text-center">Pos.</th>
+                  <th class="py-2 px-3 text-left">Equipe</th>
+                  <th class="py-2 px-3 text-center">Pts</th>
+                  <th class="py-2 px-3 text-center">J</th>
+                  <th class="py-2 px-3 text-center">V</th>
+                  <th class="py-2 px-3 text-center">Saldo</th>
+                </tr>
+              </thead>
+              <tbody>${standingsHtml}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // TIPO 2: SEGUE LINHA (CHECKPOINTS + TEMPO)
+    if (b.type === "line_follower") {
+      const standings = computeStandings(b);
+      const rankMap = {};
+      standings.forEach((st, idx) => {
+        rankMap[st.team] = { pos: idx + 1, best: st };
+      });
+
+      const runsHtml = b.runs.map((r, idx) => {
+        const info = rankMap[r.team];
+        const medal = info.best.hasMark
+          ? (info.pos === 1 ? "🥇 1º" : info.pos === 2 && b.podiumSlots >= 2 ? "🥈 2º" : info.pos === 3 && b.podiumSlots >= 3 ? "🥉 3º" : `${info.pos}º`)
+          : "—";
+
+        const renderAttemptCell = (num) => {
+          const cpKey = `t${num}_cp`;
+          const timeKey = `t${num}_time`;
+          if (canEdit) {
+            return `
+              <div class="flex items-center justify-center gap-1">
+                <select onchange="updateLineRun('${b.id}', ${idx}, '${cpKey}', this.value)"
+                  class="px-1.5 py-1 rounded bg-[#0B0F19] border border-purple-400/50 text-xs text-white font-bold">
+                  <option value="" ${r[cpKey] === "" ? "selected" : ""}>CP</option>
+                  <option value="0" ${String(r[cpKey]) === "0" ? "selected" : ""}>0 CP</option>
+                  <option value="1" ${String(r[cpKey]) === "1" ? "selected" : ""}>1 CP</option>
+                  <option value="2" ${String(r[cpKey]) === "2" ? "selected" : ""}>2 CP</option>
+                </select>
+                <input type="text" placeholder="mm:ss" value="${r[timeKey] || ""}" onchange="updateLineRun('${b.id}', ${idx}, '${timeKey}', this.value)"
+                  class="w-16 text-center py-1 rounded bg-[#0B0F19] border border-cyan-400/50 text-xs text-white font-bold" />
+              </div>
+            `;
+          }
+          const cpLabel = r[cpKey] !== "" ? `${r[cpKey]} CP` : "-";
+          const timeLabel = r[timeKey] ? r[timeKey] : "--:--";
+          return `<span class="font-semibold text-slate-200">${cpLabel} <span class="text-slate-500">|</span> <span class="text-cyan-300">${timeLabel}</span></span>`;
+        };
+
+        return `
+          <tr class="border-b border-slate-800/80 hover:bg-slate-800/30">
+            <td class="py-3 px-3 font-extrabold text-center">${medal}</td>
+            <td class="py-3 px-3 font-bold text-white">${r.team}</td>
+            <td class="py-3 px-3 text-center">${renderAttemptCell(1)}</td>
+            <td class="py-3 px-3 text-center">${renderAttemptCell(2)}</td>
+            <td class="py-3 px-3 text-center">${renderAttemptCell(3)}</td>
+            <td class="py-3 px-3 text-center font-extrabold text-[#00E676]">
+              ${info.best.hasMark ? `${info.best.bestCp} CP • ${info.best.bestTimeDisplay}` : "Aguardando"}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      bodyHtml = `
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs sm:text-sm border border-slate-800 rounded-xl overflow-hidden">
+            <thead>
+              <tr class="bg-[#0B0F19] text-slate-400 border-b border-slate-800">
+                <th class="py-2.5 px-3 text-center">Coloc.</th>
+                <th class="py-2.5 px-3 text-left">Equipe</th>
+                <th class="py-2.5 px-3 text-center">Tentativa 1 (CP | Tempo)</th>
+                <th class="py-2.5 px-3 text-center">Tentativa 2 (CP | Tempo)</th>
+                <th class="py-2.5 px-3 text-center">Tentativa 3 (CP | Tempo)</th>
+                <th class="py-2.5 px-3 text-center text-[#00E676]">Melhor Marca</th>
+              </tr>
+            </thead>
+            <tbody>${runsHtml}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // TIPO 3: HORS-CONCOURS
+    if (b.type === "exhibition") {
+      bodyHtml = `
+        <div class="bg-[#0B0F19]/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="text-xs text-slate-400 uppercase font-bold">Equipe Participante</div>
+            <div class="text-lg font-extrabold text-white mt-0.5">${b.team}</div>
+            <div class="text-xs text-emerald-300 mt-1">
+              ${b.completed ? "✅ Apresentação oficial concluída com sucesso!" : "⏳ Aguardando apresentação na arena"}
+            </div>
+          </div>
+          ${canEdit ? `
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <label class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 border border-[#00E676]/50 text-xs font-bold text-white cursor-pointer">
+                <input type="checkbox" ${b.completed ? "checked" : ""} onchange="updateExhibition('${b.id}', 'completed', this.checked)" class="accent-[#00E676] w-4 h-4" />
+                Marcar Apresentação Concluída
+              </label>
+              <input type="text" placeholder="Observação da bancada..." value="${b.performanceNote || ""}"
+                onchange="updateExhibition('${b.id}', 'performanceNote', this.value)"
+                class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white w-64" />
+            </div>
+          ` : (b.performanceNote ? `<div class="text-xs text-slate-300 italic">Obs.: ${b.performanceNote}</div>` : "")}
+        </div>
+      `;
+    }
+
+    // RODAPÉ DE CONFERÊNCIA E HOMOLOGAÇÃO DE CADA SÚMULA
+    const auditFooterHtml = `
+      <div class="mt-4 pt-3 border-t border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div class="text-slate-400">
+          ${b.verifiedBy ? `Conferido por: <strong class="text-slate-200">${b.verifiedBy}</strong>` : "Súmula ainda não assinada pelo mesário."}
+          ${b.notes ? ` • Obs.: <span class="text-slate-300">${b.notes}</span>` : ""}
+        </div>
+
+        ${canEdit ? `
+          <div class="no-print flex flex-wrap items-center gap-2">
+            <input type="text" placeholder="Nome do Mesário..." value="${b.verifiedBy || ""}"
+              onchange="updateAuditField('${b.id}', 'verifiedBy', this.value)"
+              class="px-2.5 py-1.5 rounded-lg bg-[#0B0F19] border border-slate-700 text-white text-xs w-40" />
+            <input type="text" placeholder="Obs. desempate / arena..." value="${b.notes || ""}"
+              onchange="updateAuditField('${b.id}', 'notes', this.value)"
+              class="px-2.5 py-1.5 rounded-lg bg-[#0B0F19] border border-slate-700 text-white text-xs w-48" />
+            <button onclick="toggleVerifyBracket('${b.id}')"
+              class="px-3 py-1.5 rounded-lg font-extrabold text-xs transition cursor-pointer ${
+                b.verified
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 hover:bg-emerald-500/30'
+                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+              }">
+              ${b.verified ? "✅ Homologada (Clique p/ reabrir)" : "☑️ Conferir e Homologar Súmula"}
+            </button>
+          </div>
+        ` : ""}
+      </div>
+    `;
+
+    return `
+      <article class="cyber-card rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-display text-lg sm:text-xl font-bold text-white print-dark-text">${b.title}</h3>
+              <span class="px-2.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-semibold">${b.arena}</span>
+              <span class="px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 text-xs font-semibold">🕒 ${b.schedule}</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">${b.rules}</p>
+          </div>
+          <div class="shrink-0">${badgeStatus}</div>
+        </div>
+        ${bodyHtml}
+        ${auditFooterHtml}
+      </article>
+    `;
+  }).join("");
+}
+
+// ============================================================================
+// FUNÇÕES DE EDIÇÃO DO ÁRBITRO
+// ============================================================================
+function markUnsaved() {
+  hasUnsavedChanges = true;
+  document.getElementById("unsavedBar").classList.remove("hidden");
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+  renderAll();
+}
+
+function updateMatchScore(bracketId, matchIdx, field, value) {
+  const b = appState.brackets.find(x => x.id === bracketId);
+  if (!b) return;
+  b.matches[matchIdx][field] = value === "" ? "" : Math.max(0, parseInt(value, 10));
+  markUnsaved();
+}
+
+function updateMatchTech(bracketId, matchIdx, checked) {
+  const b = appState.brackets.find(x => x.id === bracketId);
+  if (!b) return;
+  b.matches[matchIdx].tech = checked;
+  markUnsaved();
+}
+
+function updateLineRun(bracketId, runIdx, field, value) {
+  const b = appState.brackets.find(x => x.id === bracketId);
+  if (!b) return;
+  b.runs[runIdx][field] = value;
+  markUnsaved();
+}
+
+function updateExhibition(bracketId, field, value) {
+  const b = appState.brackets.find(x => x.id === bracketId);
+  if (!b) return;
+  b[field] = value;
+  markUnsaved();
+}
+
+function updateAuditField(bracketId, field, value) {
+  const b = appState.brackets.find(x => x.id === bracketId);
+  if (!b) return;
+  b[field] = value;
+  markUnsaved();
+}
+
+function toggleVerifyBracket(bracketId) {
+  const b = appState.brackets.find(x => x.id === bracketId);
+  if (!b) return;
+  b.verified = !b.verified;
+  const globalRef = document.getElementById("refereeNameInput").value.trim();
+  if (b.verified && !b.verifiedBy && globalRef) {
+    b.verifiedBy = globalRef;
+  }
+  markUnsaved();
+}
+
+function handleLogoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Redimensiona levemente para caber com folga no Google Sheets se necessário
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const maxDim = 240;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      appState.logoDataUrl = canvas.toDataURL("image/png", 0.85);
+      markUnsaved();
+      showToast("Logo CEPIR carregada! Clique em 'Salvar e Publicar Ao Vivo' para fixar.", "success");
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetAllData() {
+  if (!confirm("Tem certeza que deseja zerar TODOS os placares e tempos do campeonato?")) return;
+  const savedLogo = appState.logoDataUrl;
+  appState = createInitialState();
+  appState.logoDataUrl = savedLogo;
+  markUnsaved();
+  showToast("Placares zerados localmente. Clique em 'Salvar e Publicar' para limpar na nuvem.", "info");
+}
+
+// ============================================================================
+// SINCRONIZAÇÃO EM TEMPO REAL (GOOGLE PLANILHAS + LOCAL FALLBACK)
+// ============================================================================
+function updateConnectionBadge(isOnline, infoText) {
+  const badge = document.getElementById("connBadge");
+  const syncText = document.getElementById("lastSyncText");
+  if (isOnline) {
+    badge.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-400/30";
+    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-[#00E676] animate-ping"></span> Conectado Ao Vivo (Google Sheets)`;
+  } else {
+    badge.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/30";
+    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Modo Local (Sem Link Google)`;
+  }
+  if (infoText) {
+    syncText.textContent = infoText;
+    syncText.classList.remove("hidden");
+  }
+}
+
+async function fetchLiveState(silent = true) {
+  const apiUrl = getActiveApiUrl();
+  if (!apiUrl) {
+    updateConnectionBadge(false, "Configure o Google Sheets no modo ?arbitro para sincronizar entre dispositivos.");
+    return;
+  }
+
+  // Não sobrescreve enquanto o árbitro tem edições não salvas
+  if (hasUnsavedChanges) return;
+
+  try {
+    const res = await fetch(`${apiUrl}?t=${Date.now()}`);
+    const data = await res.json();
+    if (data && data.ok) {
+      if (data.state && data.state.brackets) {
+        appState = data.state;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        renderAll();
+      }
+      const hora = data.updatedAt || new Date().toLocaleTimeString("pt-BR");
+      updateConnectionBadge(true, `Última atualização ao vivo: ${hora}`);
+      if (!silent) showToast("Placar atualizado com sucesso!", "success");
+    }
+  } catch (err) {
+    updateConnectionBadge(false, "Erro ao conectar com Google Sheets. Verifique a URL.");
+    if (!silent) showToast("Não foi possível conectar ao Google Sheets.", "error");
+  }
+}
+
+function manualRefresh() {
+  fetchLiveState(false);
+}
+
+async function saveAndPublish() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+  const apiUrl = getActiveApiUrl();
+
+  if (!apiUrl) {
+    hasUnsavedChanges = false;
+    document.getElementById("unsavedBar").classList.add("hidden");
+    renderAll();
+    showToast("Salvo no navegador! (Para todos verem ao vivo em outros celulares, conecte o Link do Google Planilhas).", "success");
+    return;
+  }
+
+  const btn = document.getElementById("btnSaveTop");
+  const origText = btn.innerHTML;
+  btn.innerHTML = "⏳ Publicando...";
+  btn.disabled = true;
+
+  try {
+    const referee = document.getElementById("refereeNameInput").value.trim() || "Mesa de Arbitragem";
+    const doneCount = appState.brackets.filter(b => b.verified).length;
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "save",
+        password: refereePassword,
+        referee: referee,
+        summary: `Atualização publicada (${doneCount}/11 súmulas homologadas)`,
+        state: appState
+      })
+    });
+    const result = await response.json();
+    if (result && result.ok) {
+      hasUnsavedChanges = false;
+      document.getElementById("unsavedBar").classList.add("hidden");
+      updateConnectionBadge(true, `Publicado ao vivo às ${result.updatedAt}`);
+      renderAll();
+      showToast("✅ Resultados salvos e publicados ao vivo para todos!", "success");
+    } else {
+      showToast("❌ " + (result.error || "Erro ao salvar no servidor."), "error");
+    }
+  } catch (err) {
+    showToast("❌ Falha de rede ao enviar para o Google Sheets.", "error");
+  } finally {
+    btn.innerHTML = origText;
+    btn.disabled = false;
+  }
+}
+
+// ============================================================================
+// AUTENTICAÇÃO DA MESA DE ARBITRAGEM (?arbitro)
+// ============================================================================
+async function unlockReferee() {
+  const pass = document.getElementById("refereePassInput").value.trim();
+  if (!pass) {
+    showToast("Digite a senha da arbitragem.", "error");
+    return;
+  }
+
+  const apiUrl = getActiveApiUrl();
+  if (apiUrl) {
+    try {
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "verify", password: pass })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        showToast("❌ " + (data.error || "Senha incorreta!"), "error");
+        return;
+      }
+    } catch (e) {
+      showToast("❌ Erro ao validar senha com o Google Sheets.", "error");
+      return;
+    }
+  } else {
+    // Senha padrão para teste offline local antes de conectar o Google Sheets
+    if (pass !== "CEPIR2026") {
+      showToast("❌ Senha incorreta! (Senha padrão offline: CEPIR2026)", "error");
+      return;
+    }
+  }
+
+  refereePassword = pass;
+  isAuthenticated = true;
+  document.getElementById("refereeLoginBox").classList.add("hidden");
+  document.getElementById("refereeControlsBox").classList.remove("hidden");
+  document.getElementById("apiUrlInput").value = apiUrl;
+
+  const badge = document.getElementById("modeBadge");
+  badge.className = "px-2.5 py-1 rounded-full font-extrabold bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40";
+  badge.textContent = "✏️ MODO ARBITRAGEM (EDIÇÃO)";
+
+  renderAll();
+  showToast("Mesa de arbitragem desbloqueada!", "success");
+}
+
+function toggleApiConfig() {
+  document.getElementById("apiConfigBox").classList.toggle("hidden");
+}
+
+function applyApiUrl() {
+  const val = document.getElementById("apiUrlInput").value.trim();
+  localStorage.setItem(API_OVERRIDE_KEY, val);
+  showToast("Link do Google Sheets salvo neste navegador! Sincronizando...", "success");
+  fetchLiveState(false);
+}
+
+// ============================================================================
+// NAVEGAÇÃO E INICIALIZAÇÃO
+// ============================================================================
+function switchTab(tabKey) {
+  currentTab = tabKey;
+  document.querySelectorAll(".tab-section").forEach(sec => sec.classList.add("hidden"));
+  document.getElementById(`tab-${tabKey}`).classList.remove("hidden");
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    if (btn.dataset.tab === tabKey) {
+      btn.className = "tab-btn px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition bg-purple-600 text-white shadow";
+    } else {
+      btn.className = "tab-btn px-4 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition text-slate-300 hover:bg-slate-800";
+    }
+  });
+}
+
+function showToast(msg, type = "info") {
+  const el = document.getElementById("toastBanner");
+  el.textContent = msg;
+  if (type === "success") {
+    el.className = "no-print fixed bottom-5 right-5 z-50 max-w-md px-4 py-3 rounded-xl shadow-2xl border bg-emerald-950/95 border-[#00E676] text-emerald-200 font-semibold text-sm";
+  } else if (type === "error") {
+    el.className = "no-print fixed bottom-5 right-5 z-50 max-w-md px-4 py-3 rounded-xl shadow-2xl border bg-rose-950/95 border-rose-500 text-rose-200 font-semibold text-sm";
+  } else {
+    el.className = "no-print fixed bottom-5 right-5 z-50 max-w-md px-4 py-3 rounded-xl shadow-2xl border bg-slate-900/95 border-cyan-400 text-cyan-200 font-semibold text-sm";
+  }
+  el.classList.remove("hidden");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => el.classList.add("hidden"), 5000);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  // Carrega cache local se existir
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.brackets) appState = parsed;
+    }
+  } catch (e) {}
+
+  // Verifica se a URL contém ?arbitro (acesso restrito da mesa)
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("arbitro") || params.get("modo") === "arbitro") {
+    isRefereeUrl = true;
+    document.getElementById("refereePanel").classList.remove("hidden");
+  }
+
+  renderAll();
+  fetchLiveState(true);
+
+  // Polling automático para manter o público atualizado em tempo real
+  setInterval(() => fetchLiveState(true), CONFIG_CEPIR.SYNC_INTERVAL_MS);
+});
+</script>
+</body>
+</html>
